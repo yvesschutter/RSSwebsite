@@ -15,14 +15,14 @@
       * {
         box-sizing: border-box;
       }
-      body,
-      html {
+      html,
+      body {
         margin: 0;
         padding: 0;
         height: 100%;
         width: 100%;
-        font-family: "Roboto", sans-serif;
-        background: #111;
+        font-family: 'Roboto', sans-serif;
+        background: #000;
         color: #fff;
         overflow: hidden;
       }
@@ -40,6 +40,7 @@
         inset: 0;
         background-size: cover;
         background-position: center;
+        filter: brightness(0.8);
         opacity: 0;
         transition: opacity 1s ease-in-out;
       }
@@ -49,13 +50,13 @@
 
       /* Donkere verloopoverlay boven op elke afbeelding voor leesbaarheid */
       .slide::after {
-        content: "";
+        content: '';
         position: absolute;
         inset: 0;
         background: linear-gradient(
           0deg,
-          rgba(0, 0, 0, 0.75) 10%,
-          rgba(0, 0, 0, 0.35) 40%,
+          rgba(0, 0, 0, 0.8) 0%,
+          rgba(0, 0, 0, 0.4) 40%,
           rgba(0, 0, 0, 0) 70%
         );
       }
@@ -65,11 +66,11 @@
         position: absolute;
         left: 2vw;
         bottom: 4vh;
-        width: 66vw;
+        width: 70vw;
         font-size: 2.6vw;
         font-weight: 700;
         line-height: 1.2;
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
       }
 
       @media (max-width: 768px) {
@@ -81,56 +82,74 @@
     </style>
   </head>
   <body>
-    <div id="slides"></div>
+    <div id="slides"><!-- Slides worden hier ingeladen --></div>
 
     <script>
       const FEED_URL =
-        "https://www.nieuwsblad.be/rss/section/55178e67-15a8-4ddd-a3d8-bfe5708f8932";
-      const PROXY = "https://api.allorigins.win/get?url=";
+        'https://www.nieuwsblad.be/rss/section/55178e67-15a8-4ddd-a3d8-bfe5708f8932';
+      const PROXY = 'https://api.allorigins.win/get?url=';
 
-      // Haal de items uit de RSS‑feed
+      /**
+       * Probeer een bruikbare afbeelding uit het RSS‑item te halen.
+       * Returns null als er niets gevonden wordt.
+       */
+      function extractImage(item) {
+        // 1. <enclosure>
+        const enc = item.querySelector('enclosure');
+        if (enc && enc.getAttribute('url')) return enc.getAttribute('url');
+
+        // 2. <media:content>
+        const mc = Array.from(item.childNodes).find((n) =>
+          n.nodeName.toLowerCase().includes('media:content')
+        );
+        if (mc && mc.getAttribute('url')) return mc.getAttribute('url');
+
+        // 3. <description> eerste <img>
+        const desc = item.querySelector('description')?.textContent || '';
+        const match = desc.match(/<img[^>]+src\s*=\s*['"]([^'\"]+)['"]/i);
+        if (match) return match[1];
+
+        return null;
+      }
+
       async function fetchFeed() {
         try {
           const res = await fetch(PROXY + encodeURIComponent(FEED_URL));
-          const data = await res.json();
-          const xml = new DOMParser().parseFromString(
-            data.contents,
-            "application/xml"
-          );
+          const { contents } = await res.json();
+          const xml = new DOMParser().parseFromString(contents, 'application/xml');
 
-          return Array.from(xml.querySelectorAll("item")).map((item) => {
-            const title = item.querySelector("title")?.textContent || "";
-            let img = "";
-
-            // Kijk eerst naar enclosure
-            const enclosure = item.querySelector("enclosure");
-            if (enclosure) {
-              img = enclosure.getAttribute("url");
-            } else {
-              // Fallback naar media:content
-              const media = item.querySelector("media\\:content");
-              if (media) img = media.getAttribute("url");
-            }
-            return { title, img };
-          });
+          return [...xml.querySelectorAll('item')].map((item) => ({
+            title: item.querySelector('title')?.textContent.trim() || '',
+            img: extractImage(item),
+          }));
         } catch (err) {
-          console.error("Kon RSS-feed niet ophalen", err);
+          console.error('Feed ophalen mislukt:', err);
           return [];
         }
       }
 
-      // Bouw de slides op basis van de feed
       async function buildSlides() {
         const items = await fetchFeed();
-        const container = document.getElementById("slides");
-        container.innerHTML = ""; // Verwijder oude slides
+        const container = document.getElementById('slides');
+        container.innerHTML = '';
+
+        if (!items.length) {
+          container.innerHTML =
+            '<div class="caption">Kan RSS‑feed niet laden...</div>';
+          return;
+        }
 
         items.forEach(({ title, img }, idx) => {
-          const slide = document.createElement("div");
-          slide.className = "slide" + (idx === 0 ? " active" : "");
+          const slide = document.createElement('div');
+          slide.className = 'slide' + (idx === 0 ? ' active' : '');
+
           if (img) {
-            slide.style.backgroundImage = `url('${img}')`;
+            slide.style.backgroundImage = `url(${img})`;
+          } else {
+            // fallbackkleur als er geen afbeelding is
+            slide.style.background = '#222';
           }
+
           slide.innerHTML = `<div class="caption">${title}</div>`;
           container.appendChild(slide);
         });
@@ -138,20 +157,19 @@
         startCarousel();
       }
 
-      // Wissel elke 8 seconden naar de volgende slide
       function startCarousel() {
-        const slides = document.querySelectorAll(".slide");
-        if (!slides.length) return;
+        const slides = document.querySelectorAll('.slide');
+        if (slides.length < 2) return; // niets te wisselen
 
         let current = 0;
         setInterval(() => {
-          slides[current].classList.remove("active");
+          slides[current].classList.remove('active');
           current = (current + 1) % slides.length;
-          slides[current].classList.add("active");
+          slides[current].classList.add('active');
         }, 8000);
       }
 
-      // Eerste load en daarna elke 5 minuten verversen
+      // Init + verversen om de 5 minuten
       buildSlides();
       setInterval(buildSlides, 5 * 60 * 1000);
     </script>
