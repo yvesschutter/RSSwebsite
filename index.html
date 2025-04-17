@@ -1,63 +1,31 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Nieuwsblad – Laatste artikelen</title>
+  <meta charset="utf-8">
+  <title>Mijn FeedWind‑feed</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- maakt de feed zelf ook abonnable vanuit je site -->
-  <link rel="alternate"
-        type="application/rss+xml"
-        title="Nieuwsblad RSS"
-        href="https://www.nieuwsblad.be/rss/section/55178e67-15a8-4ddd-a3d8-bfe5708f8932">
-
+  <!-- full‑screen layout -->
   <style>
-    /* eenvoudige, responsive opmaak */
-    body{font-family:system-ui, sans-serif;max-width:700px;margin:auto;padding:1rem;}
-    h1{font-size:1.9rem;margin:1.4rem 0;}
-    article{margin-bottom:1.8rem;border-bottom:1px solid #d0d0d0;padding-bottom:1.2rem;}
-    article h2{margin:0 0 .4rem 0;font-size:1.25rem;}
-    article p{margin:.6rem 0 0 0;line-height:1.4;}
-    time{display:block;font-size:.85rem;color:#666;}
+    html,body{height:100%;margin:0;}          /* gebruik de hele viewport */
+    #fw-container{height:100%;}               /* widget mag 100 % hoog worden */
+    /* iframe dat FeedWind injecteert forceren op 100 % */
+    iframe[src*="feed.mikle.com"]{
+      width:100%!important;
+      height:100%!important;
+      border:0;
+    }
   </style>
 </head>
 <body>
-<h1>Laatste Nieuwsblad‑artikelen</h1>
-<div id="feed">Bezig met laden…</div>
-
-<script>
-/* ============== CONFIG ============== */
-const FEED_URL  = 'https://www.nieuwsblad.be/rss/section/55178e67-15a8-4ddd-a3d8-bfe5708f8932';
-const MAX_ITEMS = 20;   // toon zoveel items
-
-/* ============== HELPER ============== */
-/* Gratis rss2json‑proxy – registreer je eigen key of host een eigen proxy voor productie */
-const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(FEED_URL)}`;
-
-/* ============== LOGIC =============== */
-fetch(proxy)
-  .then(r => r.json())
-  .then(data => {
-    const box = document.getElementById('feed');
-    box.textContent = '';                             // placeholder wissen
-
-    data.items.slice(0, MAX_ITEMS).forEach(item => {
-      const date = new Date(item.pubDate)
-        .toLocaleString('nl-BE', { dateStyle:'long', timeStyle:'short' });
-
-      box.insertAdjacentHTML('beforeend', `
-        <article>
-          <h2><a href="${item.link}" target="_blank" rel="noopener">${item.title}</a></h2>
-          <time datetime="${item.pubDate}">${date}</time>
-          <p>${item.description.replace(/<[^>]+>/g,'').slice(0,160)}&hellip;</p>
-        </article>
-      `);
-    });
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById('feed').textContent =
-      'Kon de RSS‑feed niet laden. Probeer het later opnieuw.';
-  });
-</script>
+  <div id="fw-container">
+    <!-- start feedwind code -->
+    <script
+      src="https://feed.mikle.com/js/fw-loader.js"
+      preloader-text="Laden…"
+      data-fw-param="172345/">
+    </script>
+    <!-- end feedwind code -->
+  </div>
 </body>
 </html>
