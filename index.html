@@ -6,23 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    /* === basislayout: neem de volledige viewport in beslag === */
-    html, body {
-      height: 100%;
-      margin: 0;                 /* geen witruimte om de pagina */
-    }
+    /* de body en html moeten zelf 100 % hoog zijn */
+    html, body { height: 100%; margin: 0; }
 
-    /* wrapper voor de FeedWind‑widget */
-    #fw-wrapper {
-      height: 100%;              /* vult het hele scherm */
-    }
+    /* wrapper die de widget de volledige ruimte geeft */
+    #fw-wrapper { height: 100%; }
 
     /* overschrijf de vaste px‑hoogte die FeedWind meegeeft */
     iframe[src*="feed.mikle.com"] {
       width: 100% !important;
       height: 100% !important;
       border: 0;
-      display: block;            /* voorkomt extra witruimte onder het iframe */
+      display: block;        /* haalt ongewenste witruimte weg */
     }
   </style>
 </head>
@@ -32,7 +27,7 @@
     <!-- start feedwind code -->
     <script
       src="https://feed.mikle.com/js/fw-loader.js"
-      preloader-text="Laden…"
+      preloader-text="Loading"
       data-fw-param="172345/">
     </script>
     <!-- end feedwind code -->
