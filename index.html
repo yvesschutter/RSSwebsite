@@ -2,30 +2,31 @@
 <html lang="nl">
 <head>
   <meta charset="utf-8">
-  <title>FeedWind full‑screen</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FeedWind – full‑screen widget</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    /* 1️⃣  html + body moeten de hele viewport beslaan */
-    html,body{
-      height:100%;     /* maakt de body net zo hoog als het venster */
-      margin:0;
+    /* === basislayout: neem de volledige viewport in beslag === */
+    html, body {
+      height: 100%;
+      margin: 0;                 /* geen witruimte om de pagina */
     }
 
-    /* 2️⃣  wrapper vult de body */
-    #fw-wrapper{
-      height:100%;
+    /* wrapper voor de FeedWind‑widget */
+    #fw-wrapper {
+      height: 100%;              /* vult het hele scherm */
     }
 
-    /* 3️⃣  iframe dat FeedWind inlaadt krijgt 100 % hoogte */
-    iframe[src*="feed.mikle.com"]{
-      width:100%!important;
-      height:100%!important;   /* override vaste px-hoogte */
-      border:0;
-      display:block;           /* haalt eventuele inline ‘inline’‑eigenschap weg */
+    /* overschrijf de vaste px‑hoogte die FeedWind meegeeft */
+    iframe[src*="feed.mikle.com"] {
+      width: 100% !important;
+      height: 100% !important;
+      border: 0;
+      display: block;            /* voorkomt extra witruimte onder het iframe */
     }
   </style>
 </head>
+
 <body>
   <div id="fw-wrapper">
     <!-- start feedwind code -->
