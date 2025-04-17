@@ -7,30 +7,40 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
         }
         #news-ticker {
             background-color: #333;
             color: #fff;
-            padding: 10px;
-            font-size: 16px;
+            width: 100%;
+            font-size: 24px;
             white-space: nowrap;
             overflow: hidden;
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         #ticker-content {
-            position: absolute;
-            animation: ticker 20s linear infinite;
+            display: inline-block;
+            padding: 10px 0;
+            animation: ticker 30s linear infinite;
         }
         @keyframes ticker {
             0% {
-                left: 100%;
+                transform: translateX(100%);
             }
             100% {
-                left: -100%;
+                transform: translateX(-100%);
             }
+        }
+        .ticker-item {
+            margin-right: 50px;
         }
     </style>
 </head>
@@ -53,13 +63,17 @@
 
             items.forEach(item => {
                 const title = item.querySelector('title').textContent;
-                tickerContent += `${title} | `;
+                tickerContent += `<span class="ticker-item">${title}</span>`;
             });
 
-            document.getElementById('ticker-content').textContent = tickerContent;
+            document.getElementById('ticker-content').innerHTML = tickerContent;
         }
 
+        // Fetch and display RSS feed
         fetchRSS();
+
+        // Refresh the feed every minute to keep it up-to-date
+        setInterval(fetchRSS, 60000); // 60000ms = 1 minute
     </script>
 </body>
 </html>
