@@ -1,50 +1,12 @@
-<?php
-// URL van de RSS-feed (pas aan indien nodig)
-$feedUrl = "https://www.standaard.be/rss";
-
-// Haal de feed op (zorg dat allow_url_fopen aan staat of gebruik cURL)
-$feedContent = file_get_contents($feedUrl);
-if (!$feedContent) {
-    echo "Kan de feed niet laden.";
-    exit;
-}
-
-// Parseer de XML-feed
-$xml = simplexml_load_string($feedContent);
-if (!$xml) {
-    echo "Fout bij het parsen van de feed.";
-    exit;
-}
-?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Nieuwsfeed</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 20px; }
-    h1 { text-align: center; }
-    ul { list-style: none; padding: 0; }
-    li { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
-    li a { color: #0073e6; font-weight: bold; text-decoration: none; }
-    li a:hover { text-decoration: underline; }
-    .pubdate { color: #666; font-size: 0.9em; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Nieuwsfeed</title>
 </head>
 <body>
-  <h1><?php echo htmlspecialchars($xml->channel->title); ?></h1>
-  <ul>
-    <?php foreach ($xml->channel->item as $item): ?>
-      <li>
-        <a href="<?php echo htmlspecialchars($item->link); ?>" target="_blank">
-          <?php echo htmlspecialchars($item->title); ?>
-        </a>
-        <div class="pubdate">
-          <?php echo date("d-m-Y H:i", strtotime($item->pubDate)); ?>
-        </div>
-        <p><?php echo strip_tags($item->description); ?></p>
-      </li>
-    <?php endforeach; ?>
-  </ul>
+    <!-- start feedwind code -->
+    <script type="text/javascript" src="https://feed.mikle.com/js/fw-loader.js" preloader-text="Loading" data-fw-param="172345/"></script>
+    <!-- end feedwind code -->
 </body>
 </html>
