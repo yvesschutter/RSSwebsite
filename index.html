@@ -1,177 +1,63 @@
 <!DOCTYPE html>
 <html lang="nl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nieuwsblad Full‑Screen Ticker</title>
-    <!-- Google Font voor modern uiterlijk -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        font-family: 'Roboto', sans-serif;
-        background: #000;
-        color: #fff;
-        overflow: hidden;
-      }
+<head>
+  <meta charset="UTF-8">
+  <title>Nieuwsblad – Laatste artikelen</title>
 
-      /* Container voor alle slides */
-      #slides {
-        position: relative;
-        height: 100%;
-        width: 100%;
-      }
+  <!-- maakt de feed zelf ook abonnable vanuit je site -->
+  <link rel="alternate"
+        type="application/rss+xml"
+        title="Nieuwsblad RSS"
+        href="https://www.nieuwsblad.be/rss/section/55178e67-15a8-4ddd-a3d8-bfe5708f8932">
 
-      /* Individuele slide */
-      .slide {
-        position: absolute;
-        inset: 0;
-        background-size: cover;
-        background-position: center;
-        filter: brightness(0.8);
-        opacity: 0;
-        transition: opacity 1s ease-in-out;
-      }
-      .slide.active {
-        opacity: 1;
-      }
+  <style>
+    /* eenvoudige, responsive opmaak */
+    body{font-family:system-ui, sans-serif;max-width:700px;margin:auto;padding:1rem;}
+    h1{font-size:1.9rem;margin:1.4rem 0;}
+    article{margin-bottom:1.8rem;border-bottom:1px solid #d0d0d0;padding-bottom:1.2rem;}
+    article h2{margin:0 0 .4rem 0;font-size:1.25rem;}
+    article p{margin:.6rem 0 0 0;line-height:1.4;}
+    time{display:block;font-size:.85rem;color:#666;}
+  </style>
+</head>
+<body>
+<h1>Laatste Nieuwsblad‑artikelen</h1>
+<div id="feed">Bezig met laden…</div>
 
-      /* Donkere verloopoverlay boven op elke afbeelding voor leesbaarheid */
-      .slide::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          0deg,
-          rgba(0, 0, 0, 0.8) 0%,
-          rgba(0, 0, 0, 0.4) 40%,
-          rgba(0, 0, 0, 0) 70%
-        );
-      }
+<script>
+/* ============== CONFIG ============== */
+const FEED_URL  = 'https://www.nieuwsblad.be/rss/section/55178e67-15a8-4ddd-a3d8-bfe5708f8932';
+const MAX_ITEMS = 20;   // toon zoveel items
 
-      /* Titel / caption */
-      .caption {
-        position: absolute;
-        left: 2vw;
-        bottom: 4vh;
-        width: 70vw;
-        font-size: 2.6vw;
-        font-weight: 700;
-        line-height: 1.2;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
-      }
+/* ============== HELPER ============== */
+/* Gratis rss2json‑proxy – registreer je eigen key of host een eigen proxy voor productie */
+const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(FEED_URL)}`;
 
-      @media (max-width: 768px) {
-        .caption {
-          font-size: 5vw;
-          width: 90vw;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="slides"><!-- Slides worden hier ingeladen --></div>
+/* ============== LOGIC =============== */
+fetch(proxy)
+  .then(r => r.json())
+  .then(data => {
+    const box = document.getElementById('feed');
+    box.textContent = '';                             // placeholder wissen
 
-    <script>
-      const FEED_URL =
-        'https://www.nieuwsblad.be/rss/section/55178e67-15a8-4ddd-a3d8-bfe5708f8932';
-      const PROXY = 'https://api.allorigins.win/get?url=';
+    data.items.slice(0, MAX_ITEMS).forEach(item => {
+      const date = new Date(item.pubDate)
+        .toLocaleString('nl-BE', { dateStyle:'long', timeStyle:'short' });
 
-      /**
-       * Probeer een bruikbare afbeelding uit het RSS‑item te halen.
-       * Returns null als er niets gevonden wordt.
-       */
-      function extractImage(item) {
-        // 1. <enclosure>
-        const enc = item.querySelector('enclosure');
-        if (enc && enc.getAttribute('url')) return enc.getAttribute('url');
-
-        // 2. <media:content>
-        const mc = Array.from(item.childNodes).find((n) =>
-          n.nodeName.toLowerCase().includes('media:content')
-        );
-        if (mc && mc.getAttribute('url')) return mc.getAttribute('url');
-
-        // 3. <description> eerste <img>
-        const desc = item.querySelector('description')?.textContent || '';
-        const match = desc.match(/<img[^>]+src\s*=\s*['"]([^'\"]+)['"]/i);
-        if (match) return match[1];
-
-        return null;
-      }
-
-      async function fetchFeed() {
-        try {
-          const res = await fetch(PROXY + encodeURIComponent(FEED_URL));
-          const { contents } = await res.json();
-          const xml = new DOMParser().parseFromString(contents, 'application/xml');
-
-          return [...xml.querySelectorAll('item')].map((item) => ({
-            title: item.querySelector('title')?.textContent.trim() || '',
-            img: extractImage(item),
-          }));
-        } catch (err) {
-          console.error('Feed ophalen mislukt:', err);
-          return [];
-        }
-      }
-
-      async function buildSlides() {
-        const items = await fetchFeed();
-        const container = document.getElementById('slides');
-        container.innerHTML = '';
-
-        if (!items.length) {
-          container.innerHTML =
-            '<div class="caption">Kan RSS‑feed niet laden...</div>';
-          return;
-        }
-
-        items.forEach(({ title, img }, idx) => {
-          const slide = document.createElement('div');
-          slide.className = 'slide' + (idx === 0 ? ' active' : '');
-
-          if (img) {
-            slide.style.backgroundImage = `url(${img})`;
-          } else {
-            // fallbackkleur als er geen afbeelding is
-            slide.style.background = '#222';
-          }
-
-          slide.innerHTML = `<div class="caption">${title}</div>`;
-          container.appendChild(slide);
-        });
-
-        startCarousel();
-      }
-
-      function startCarousel() {
-        const slides = document.querySelectorAll('.slide');
-        if (slides.length < 2) return; // niets te wisselen
-
-        let current = 0;
-        setInterval(() => {
-          slides[current].classList.remove('active');
-          current = (current + 1) % slides.length;
-          slides[current].classList.add('active');
-        }, 8000);
-      }
-
-      // Init + verversen om de 5 minuten
-      buildSlides();
-      setInterval(buildSlides, 5 * 60 * 1000);
-    </script>
-  </body>
+      box.insertAdjacentHTML('beforeend', `
+        <article>
+          <h2><a href="${item.link}" target="_blank" rel="noopener">${item.title}</a></h2>
+          <time datetime="${item.pubDate}">${date}</time>
+          <p>${item.description.replace(/<[^>]+>/g,'').slice(0,160)}&hellip;</p>
+        </article>
+      `);
+    });
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById('feed').textContent =
+      'Kon de RSS‑feed niet laden. Probeer het later opnieuw.';
+  });
+</script>
+</body>
 </html>
