@@ -6,16 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    /* de body en html moeten zelf 100 % hoog zijn */
-    html, body { height: 200; margin: 0; }
+  /* de body en html moeten zelf 100vh hoog zijn */
+  html, body { height: 100vh; margin: 0; }
 
-    /* wrapper die de widget de volledige ruimte geeft */
-    #fw-wrapper { height: 500; }
+  /* wrapper die de widget de volledige ruimte geeft */
+  #fw-wrapper { height: 100vh; }
 
-    /* overschrijf de vaste px‑hoogte die FeedWind meegeeft */
-    iframe[src*="feed.mikle.com"] {
-      width: 80 !important;
-      height: 500 !important;
+  /* overschrijf de vaste px‑hoogte die FeedWind meegeeft */
+  iframe[src*="feed.mikle.com"] {
+    width: 80% !important;
+    height: 500px !important;
       border: 0;
       display: block;        /* haalt ongewenste witruimte weg */
     }
