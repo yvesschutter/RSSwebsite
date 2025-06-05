@@ -2,23 +2,9 @@
 <html lang="nl">
 <head>
   <meta charset="utf-8">
-  <title>FeedWind – full‑screen widget</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <title>Nieuws zonder cookies</title>
   <style>
-    /* de body en html moeten zelf 100 % hoog zijn */
-    html, body { height: 200; margin: 0; }
-
-    /* wrapper die de widget de volledige ruimte geeft */
-    #fw-wrapper { height: 500; }
-
-    /* overschrijf de vaste px‑hoogte die FeedWind meegeeft */
-    iframe[src*="feed.mikle.com"] {
-      width: 80 !important;
-      height: 500 !important;
-      border: 0;
-      display: block;        /* haalt ongewenste witruimte weg */
     html, body {
       height: 100%;
       margin: 0;
@@ -39,6 +25,13 @@
       padding: 1rem;
       border-radius: 0.5rem;
     }
+    article img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+    }
     h2 {
       margin: 0 0 0.5rem 0;
       font-size: 3vh;
@@ -52,21 +45,11 @@
     }
   </style>
 </head>
-
 <body>
-  <div id="fw-wrapper">
-    <!-- start feedwind code -->
-    <script
-      src="https://feed.mikle.com/js/fw-loader.js"
-      preloader-text="Loading"
-      data-fw-param="172345/">
-    </script>
-    <!-- end feedwind code -->
-  </div>
   <div id="feed">Nieuws wordt geladen…</div>
   <script>
     async function loadFeed() {
-      const feedUrl = encodeURIComponent('https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml');
+      const feedUrl = encodeURIComponent('https://www.standaard.be/rss.xml');
       try {
         const response = await fetch('https://api.allorigins.win/raw?url=' + feedUrl);
         const text = await response.text();
@@ -78,8 +61,11 @@
           const title = item.querySelector('title')?.textContent || 'Geen titel';
           const link = item.querySelector('link')?.textContent || '#';
           const description = item.querySelector('description')?.textContent || '';
+          const image = item.querySelector('enclosure')?.getAttribute('url') ||
+                        item.querySelector('media\\:content')?.getAttribute('url') || '';
           const article = document.createElement('article');
-          article.innerHTML = `<h2><a href="${link}" target="_blank" rel="noopener">${title}</a></h2><p>${description}</p>`;
+          const imageHtml = image ? `<img src="${image}" alt="">` : '';
+          article.innerHTML = `${imageHtml}<h2><a href="${link}" target="_blank" rel="noopener">${title}</a></h2><p>${description}</p>`;
           container.appendChild(article);
         });
       } catch (err) {
